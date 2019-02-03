@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+###################################
+# added a mirror to mirror list
+#Input
+# $1: mirrorlist_file
+# $2: the mirror line
+###################################
+function add_a_mirror()
+{
+	declare -r mirrorlist="${1}"
+	declare -r mirror_line="${2}"
+	if grep "${mirror_line}" "${mirrorlist}" &>/dev/null; then
+		echo "${mirrorlist}: already has line '${mirror_line}'"
+	else
+		local tmpfile=$(mktemp)
+		sed '/Server = /{d;q}' "${mirrorlist}" > ${tmpfile}
+		echo "${mirror_line}" >> ${tmpfile}
+		grep -A 100 "Server =" "${mirrorlist}" >> ${tmpfile}
+		cat ${tmpfile}
+		cp ${tmpfile} ${mirrorlist}
+		rm -f ${tmpfile}
+	fi
+}
+
+add_a_mirror "${HOME}/test/mirrorlist.mingw32" "Server = http://mirrors.ustc.edu.cn/msys2/mingw/i686/"
+add_a_mirror "${HOME}/test/mirrorlist.mingw64" "Server = http://mirrors.ustc.edu.cn/msys2/mingw/x86_64/"
+add_a_mirror "${HOME}/test/mirrorlist.msys" "Server = http://mirrors.ustc.edu.cn/msys2/msys/\$arch/"
+
